@@ -17,9 +17,21 @@ if 'tagging' in django_settings.INSTALLED_APPS:
 else:
     TagField = None
 
+DEFAULT_UPLOAD_DIRECTORIES = (('adminfiles', 'Default'),)
+UPLOAD_DIRECTORIES = getattr(django_settings, 'UPLOAD_DIRECTORIES', DEFAULT_UPLOAD_DIRECTORIES)
+
+
+def get_upload_dir(instance, filename):
+    valid_dirs = [d[0] for d in UPLOAD_DIRECTORIES]
+    if instance.upload_to in valid_dirs:
+        return "%s/%s" %(instance.upload_to, filename)
+    else:
+        return "%s/%s" %('untitled', filename)
+
 class FileUpload(models.Model):
     upload_date = models.DateTimeField(_('upload date'), auto_now_add=True)
-    upload = models.FileField(_('file'), upload_to=settings.ADMINFILES_UPLOAD_TO)
+    upload = models.FileField(_('file'), upload_to=get_upload_dir)
+    upload_to = models.CharField(max_length="200", choices= UPLOAD_DIRECTORIES, blank=False, null=False)
     title = models.CharField(_('title'), max_length=100)
     slug = models.SlugField(_('slug'), max_length=100, unique=True)
     description = models.CharField(_('description'), blank=True, max_length=200)
@@ -28,7 +40,7 @@ class FileUpload(models.Model):
 
     if TagField:
         tags = TagField(_('tags'))
-    
+
     class Meta:
         ordering = ['upload_date', 'title']
         verbose_name = _('file upload')
@@ -56,13 +68,13 @@ class FileUpload(models.Model):
             else:
                 self._dimensions_cache = (None, None)
         return self._dimensions_cache
-    
+
     def width(self):
         return self._get_dimensions()[0]
-    
+
     def height(self):
         return self._get_dimensions()[1]
-    
+
     def save(self, *args, **kwargs):
         try:
             uri = self.upload.path
