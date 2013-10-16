@@ -31,7 +31,7 @@ def get_upload_dir(instance, filename):
 class FileUpload(models.Model):
     upload_date = models.DateTimeField(_('upload date'), auto_now_add=True)
     upload = models.FileField(_('file'), upload_to=get_upload_dir)
-    upload_to = models.CharField(max_length="200", choices= UPLOAD_DIRECTORIES, blank=False, null=False)
+    upload_to = models.CharField(max_length="200", choices= UPLOAD_DIRECTORIES, default=UPLOAD_DIRECTORIES[0][0], blank=False, null=False)
     title = models.CharField(_('title'), max_length=100)
     slug = models.SlugField(_('slug'), max_length=100, unique=True)
     description = models.CharField(_('description'), blank=True, max_length=200)
